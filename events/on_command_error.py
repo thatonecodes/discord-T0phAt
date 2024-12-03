@@ -9,10 +9,10 @@ from utils import getIcon, getName
 
 botname: str = getName()
 
-async def generic_error(ctx: commands.Context, icon_file: File | None, icon_url: str):
+async def generic_error(ctx: commands.Context, icon_file: File | None, icon_url: str, error):
     errorembed = discord.Embed(
         title="An error occured!",
-        description="Woah! Looks like there was an error...",
+        description=f"Woah! Looks like there was an error!\n\n{str(error)}",
         color=discord.Colour.red()
     )
     errorembed.set_author(
@@ -36,7 +36,7 @@ async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
         notfound = discord.Embed(
             title="Command not found!",
-            description="Invalid command. Use $help to see all available commands.",
+            description="Invalid command. Use /help to see all available commands.",
             color=discord.Color.red()
         )
         notfound.set_author(
@@ -70,9 +70,21 @@ async def on_command_error(ctx, error):
         if isinstance(error.original, discord.errors.HTTPException):
             logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.WARN)
             logging.warn("[WARN] Error processing http request, return code 400(Bad Request), are you using an invalid url?")
-            await generic_error(ctx, icon_file, icon_url)
+            await generic_error(ctx, icon_file, icon_url, error)
+            
+    elif isinstance(error, commands.BadArgument): 
+        notfound = discord.Embed(
+            title="Invalid argument! :scream:",
+            description="You did not enter the valid type of the argument. Please try again!",
+            color=discord.Color.red()
+        )
+        notfound.set_author(
+            name=f"{botname}",
+            icon_url=f"{icon_url}"
+        )
+        await ctx.send(embed=notfound, file=icon_file)
     else:
-        await generic_error(ctx, icon_file, icon_url)
+        await generic_error(ctx, icon_file, icon_url, error)
         print_err(error)
 
 

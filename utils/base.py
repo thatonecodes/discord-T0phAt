@@ -4,7 +4,6 @@ from utils import getIcon, getName
 from discord.ui import Select, View
 from typing import Dict, List, Optional
 
-
 # Initialize view classes
 class DropdownView(View):
     """
@@ -62,7 +61,7 @@ class BaseClass(commands.Cog):
         return embed
 
     async def send_embed(
-            self, ctx, title, description, fields=None, footer: Dict = {}, colour=None, ephemeral=False, dropdown_options=None, dropdown_callback=None
+            self, ctx, title, description, fields=None, thumbnail: str = "", footer: Dict = {}, view=None, colour=None, ephemeral=False, dropdown_options=None, dropdown_callback=None
         ):
         """
         Utility to send an embed with a consistent style.
@@ -71,7 +70,9 @@ class BaseClass(commands.Cog):
         :param description: Description of the embed
         :param colour: Color of Discord Embed (default=discord.Colour.random())
         :param fields: (optional) List of fields, each a dict with `name`, `value`, `inline`
-        :param footer: (optional) Dict {text: str, icon: bool}
+        :param Thumbnail: (optional) str of https link for thumbnail
+        :param footer: (optional) Dict {text: str, icon: bool | str -> link}
+        :param view: (optional) Discord.ui.View() class object reference. 
         :param ephemeral: (optional) Whether the message should be ephemeral (for interactions)
         :param dropdown_options: (optional) List of `discord.SelectOption` for the dropdown menu
         :param dropdown_callback: (optional) Callback for the dropdown menu (has to be async func)
@@ -86,28 +87,39 @@ class BaseClass(commands.Cog):
             colour=colour or discord.Colour.random(),
         )
         embed.set_author(name=self.botname, icon_url=self.icon_url)
+        if len(thumbnail) != 0:
+            embed.set_thumbnail(url=thumbnail)
         if footer != {}:
-            embed.set_footer(text=footer["text"], icon_url=self.icon_url if footer["icon"] else None)
+            if isinstance(footer["icon"], bool):
+                embed.set_footer(text=footer["text"], icon_url=self.icon_url if footer["icon"] else None)
+            elif isinstance(footer["icon"], str):
+                embed.set_footer(text=footer["text"], icon_url=footer["icon"] if footer["icon"] else None)
         if fields:
             embed = self.add_fields(embed, fields)
 
         # Initialize the dropdown view if options are provided
-        view = DropdownView(options=dropdown_options, callback=dropdown_callback) if dropdown_options else None
+        view = view
+        if dropdown_options:
+            view = DropdownView(options=dropdown_options, callback=dropdown_callback) if dropdown_options else None
 
         # Function to send the embed
         async def send(embed, view, file=None):
-            if not file:
-                file = discord.File(fp="") #create empty discord file if none
-            if isinstance(ctx, commands.Context):
-                await ctx.send(embed=embed, file=file, view=view)
-            elif isinstance(ctx, discord.Interaction):
-                if not ctx.response.is_done():
-                    await ctx.response.send_message(embed=embed, file=file, view=view, ephemeral=ephemeral)
-                else:
-                    await ctx.followup.send(embed=embed, file=file, view=view, ephemeral=ephemeral)
-
+            try: 
+                if not file:
+                    file = discord.File(fp="") #create empty discord file if none
+                if isinstance(ctx, commands.Context):
+                    await ctx.send(embed=embed, file=file, view=view)
+                elif isinstance(ctx, discord.Interaction):
+                    if not ctx.response.is_done():
+                        await ctx.response.send_message(embed=embed, file=file, view=view, ephemeral=ephemeral)
+                    else:
+                        await ctx.followup.send(embed=embed, file=file, view=view, ephemeral=ephemeral)
+            except Exception as e:
+                print("ERR", e)
+                    
         # Send the embed
         await send(embed=embed, view=view, file=self.icon_file if self.icon_file else None)
+
 
     @classmethod
     async def setup(cls, bot, cog_class):

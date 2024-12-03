@@ -50,7 +50,10 @@ class Helper(BaseClass):
 
 
    info = "Command that displays this message."
-   @commands.command(help=info)
+   @discord.app_commands.command(
+        name="help", 
+        description=info
+    )
    async def help(self, ctx):
        fields = self.get_cog_commands() + self.get_slash_commands()
 

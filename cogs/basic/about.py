@@ -43,12 +43,16 @@ class About(BaseClass):
             {"name": "Uptime 👍", "value": f"{(time.time() - uptime) / 60:.2f} minutes", "inline": True},
         ]
 
+        view = discord.ui.View()
+        view.add_item(discord.ui.Button(label="Support Server", url="https://discord.gg/PqmxFp8NBp", style=discord.ButtonStyle.link))
         await self.send_embed(
             ctx,
             title=f"About {getName()}",
             description=aboutInfo,
             fields=fields,
-            footer={"text": "Made by [Michael](https://discordapp.com/users/1278929631197663314)", "icon": True}
+            footer={"text": "Made by Michael", "icon": "https://cdn.discordapp.com/avatars/1278929631197663314/fab7b0f06b4b5fadd061189a56a1711e.webp?size=160"},
+            view=view,
+            colour=discord.Colour.from_rgb(252, 5, 33)
         )
 
 async def setup(bot):
