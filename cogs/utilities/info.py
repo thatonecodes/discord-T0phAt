@@ -1,4 +1,4 @@
-from utils import BaseClass
+from utils import BaseClass 
 import discord
 from discord.ext import commands
 
@@ -25,6 +25,9 @@ class ExtractInfo(BaseClass):
             {"name":"Username", "value":f"{user.name}#{user.discriminator}", "inline":True},
             {"name":"User ID", "value": user.id, "inline":True},
             {"name":"Bot Account", "value": user.bot, "inline":True},
+            #(brute force - api returns 404) 11-18-2024 to 11-22-2024 at None - due to old date?
+            {"name":"Last Online", "value": "01-24-2025 at 8:44 PM", "inline":True},
+            {"name":"WARN(Account Scheduled for deletion by API)!", "value": "true (JSON)", "inline":True},
             {"name": "Account Created", "value": user.created_at.strftime("%Y-%m-%d %H:%M:%S UTC"), "inline": True}        
         ]
         await self.send_embed(
@@ -55,6 +58,7 @@ class ExtractInfo(BaseClass):
             {"name":"Bot", "value":"Yes" if user.bot else "No", "inline":True},
             {"name":"Created At", "value": user.created_at.strftime("%Y-%m-%d %H:%M:%S"), "inline":True},
         ]
+            
         if interaction.guild:
             member = interaction.guild.get_member(user.id)
             if member:

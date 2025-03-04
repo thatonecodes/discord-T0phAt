@@ -5,6 +5,7 @@ import time
 
 load_dotenv(find_dotenv())
 uptime = time.time()
+
 async def on_ready(bot):
     uptime = time.time()
     synced = await bot.tree.sync()
