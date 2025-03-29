@@ -14,9 +14,11 @@ class MessageControl(BaseClass):
     async def sendmsg(self, interaction: discord.Interaction, user: discord.User, message: str):
         """
         Command to send a message from the bot to another user.
-        :param interaction: The interaction object
-        :param user: The user to fetch information about
-        :param message: The message you want to send using the bot (must be str) 
+
+        Parameters:
+            interaction (discord.Interaction): The interaction object
+            user (discord.User): The user to fetch information about
+            message (str): The message you want to send using the bot (must be str) 
         """
         try:
             await user.send(message)
@@ -32,7 +34,14 @@ class MessageControl(BaseClass):
 
     @commands.command(help="Sends a message to provided user. Use - `$sendmsgid (userId)`")
     async def sendmsgid(self, ctx, user_id: int, *, message: str):
-        """Sends a DM to a user by their ID."""
+        """
+        Command to send a message from the bot to another user using their ID.
+
+        Parameters:
+            ctx (commands.Context): The context object.
+            user_id (int): The ID to send the desired message to.
+            message (str): The message you want to send using the bot 
+        """
         try:
             user = await self.bot.fetch_user(user_id)  # Fetch the user by ID
             await user.send(message)  # Send a direct message
@@ -45,7 +54,14 @@ class MessageControl(BaseClass):
     @commands.command(help="Repeats the message you provide it as an argument. usage: `$repeat (message)`")
     async def repeat(self, ctx, message: str):
         """
-        Command to repeat a user message.
+        Makes the bot repeat the provided message.
+
+        Parameters:
+            ctx (commands.Context): The context object containing information about the command invocation.
+            message (str): The message to be repeated by the bot.
+
+        Raises:
+            discord.Forbidden: If the bot does not have permission to send a message in the channel.
         """
         try:
             await ctx.send(message)

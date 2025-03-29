@@ -7,7 +7,14 @@ class ExtractInfo(BaseClass):
         super().__init__(bot)
 
     @commands.command(name="guserinfo", help="Global information about any user - use is `$guserinfo (userID)`")
-    async def guserinfo(self, ctx, user_id: int):
+    async def guserinfo(self, ctx: commands.Context, user_id: int):
+        """
+        Command to get information about a user globally.
+        ---
+        Attributes: 
+            ctx `commands.Context`: The context object
+            user_id `int`: The user to fetch information about
+        """
         # Fetch user object using their ID
         try:
             user_id = int(user_id)
@@ -25,9 +32,6 @@ class ExtractInfo(BaseClass):
             {"name":"Username", "value":f"{user.name}#{user.discriminator}", "inline":True},
             {"name":"User ID", "value": user.id, "inline":True},
             {"name":"Bot Account", "value": user.bot, "inline":True},
-            #(brute force - api returns 404) 11-18-2024 to 11-22-2024 at None - due to old date?
-            {"name":"Last Online", "value": "01-24-2025 at 8:44 PM", "inline":True},
-            {"name":"WARN(Account Scheduled for deletion by API)!", "value": "true (JSON)", "inline":True},
             {"name": "Account Created", "value": user.created_at.strftime("%Y-%m-%d %H:%M:%S UTC"), "inline": True}        
         ]
         await self.send_embed(
@@ -39,16 +43,17 @@ class ExtractInfo(BaseClass):
             thumbnail=user.avatar.url
         )
 
-    info = "Gets information like username and ID of user."
     @discord.app_commands.command(
         name="getinfo",
-        description="Get information about a user."
+        description="Get information about a user who is in the server."
     )
     async def getinfo(self, interaction: discord.Interaction, user: discord.User):
         """
-        Command to get information about a user.
-        :param interaction: The interaction object
-        :param user: The user to fetch information about
+        Command to get information about a user who is in the guild.
+        ---
+        Attributes:
+            interaction `discord.Interaction`: The interaction object
+            user `discord.User`: The user to fetch information about (using @testuser)
         """
 
         fields = [

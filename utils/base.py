@@ -2,23 +2,30 @@ import discord
 from discord.ext import commands
 from utils import getIcon, getName
 from discord.ui import Select, View
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Callable 
 
 # Initialize view classes
 class DropdownView(View):
     """
     Utility class for initializing View Render class.
+    ---
+    Attributes:
+        options `list[discord.SelectOption], optional`: List of discord.SelectOption for the dropdown menu.
+        callback `Optional[Callable]`: Callback function to handle the interaction.
+        timeout `Optional[float]`: Timeout for the view interaction in seconds. Defaults to 180.
     """
-    def __init__(self, *, options=None, callback=None, timeout: Optional[float] = 180):
+    def __init__(self, *, options: Optional[List[discord.SelectOption]]=None, callback: Optional[Callable]=None, timeout: Optional[float]= 180):
         super().__init__(timeout=timeout)
         self.add_item(DropdownMenu(options=options, callback=callback))
 
 class DropdownMenu(Select):
-    def __init__(self, *, options=None, callback=None):
+    def __init__(self, *, options: Optional[List[discord.SelectOption]]=None, callback: Optional[Callable]=None):
         """
         Dropdown menu with custom callback support.
-        :param options: List of discord.SelectOption for the dropdown menu.
-        :param callback: Callback function to handle the interaction.
+        ---
+        Attributes:
+            options `Optional[list[discord.SelectOption]]`: List of discord.SelectOption for the dropdown menu.
+            callback `Optional[Callable]`: Callback function to handle the interaction.
         """
         self.customCallback = callback
         if options is None:
@@ -32,7 +39,11 @@ class DropdownMenu(Select):
     async def callback(self, interaction: discord.Interaction):
         """
         Handles the selection callback and passes the interaction to the custom callback.
-        :param interaction: Discord interaction object.
+        ---
+        Attributes:
+            interaction `discord.Interaction`: Discord interaction object.
+        Raises:
+            `Exception`: if the callback function is not provided.
         """
         if callable(self.customCallback):
             await self.customCallback(interaction, self.values)
@@ -46,12 +57,16 @@ class BaseClass(commands.Cog):
         self.botname = getName()
         self.icon_file, self.icon_url = getIcon()
 
-    def add_fields(self, embed: discord.Embed, desiredList: List[Dict]):
+    def add_fields(self, embed: discord.Embed, desiredList: List[Dict]) -> discord.Embed:
         """
         Adds fields to the embed, with optional inline setting.
-        :param embed: The embed to add fields to
-        :param desiredList: List of fields, where each field is a dict with keys `name`, `value`, and optionally `inline`
-        :return: The updated embed
+        ---
+        Attributes:
+            embed `discord.Embed`: The embed to add fields to.
+            desiredList `list[dict]`: List of fields, where each field is a dict with keys name, value, and optionally inline.
+
+        Returns:
+            `discord.Embed`: The updated embed.
         """
         for field in desiredList:
             name = field.get('name')
@@ -61,21 +76,29 @@ class BaseClass(commands.Cog):
         return embed
 
     async def send_embed(
-            self, ctx, title, description, fields=None, thumbnail: str = "", footer: Dict = {}, view=None, colour=None, ephemeral=False, dropdown_options=None, dropdown_callback=None
-        ):
+            self, ctx: commands.Context | discord.Interaction, title: str, description: str, fields: Optional[List[Dict]] = None, 
+            thumbnail: str = "", footer: Dict = {}, view=None, colour: discord.Colour = discord.Colour.random(), 
+            ephemeral: bool = False, dropdown_options: Optional[List[discord.SelectOption]] = None, dropdown_callback: Optional[Callable] = None
+        ) -> discord.Embed: 
         """
         Utility to send an embed with a consistent style.
-        :param ctx: Command context or interaction context
-        :param title: Title of the embed
-        :param description: Description of the embed
-        :param colour: Color of Discord Embed (default=discord.Colour.random())
-        :param fields: (optional) List of fields, each a dict with `name`, `value`, `inline`
-        :param Thumbnail: (optional) str of https link for thumbnail
-        :param footer: (optional) Dict {text: str, icon: bool | str -> link}
-        :param view: (optional) Discord.ui.View() class object reference. 
-        :param ephemeral: (optional) Whether the message should be ephemeral (for interactions)
-        :param dropdown_options: (optional) List of `discord.SelectOption` for the dropdown menu
-        :param dropdown_callback: (optional) Callback for the dropdown menu (has to be async func)
+        ---
+        Attributes:
+            ctx `commands.Context | discord.Interaction`: The command or interaction context.
+            title `str`: The title of the embed.
+            description `str`: The description of the embed.
+            colour `discord.Colour, optional`: The color of the embed. Defaults to `discord.Colour.random()`.
+            fields `list[dict], optional`: A list of fields, where each field is a dictionary with 
+                name `str`, value `str`, and inline `bool`.
+            thumbnail `str, optional`: A URL (https) for the embed thumbnail.
+            footer `dict, optional`: A dictionary containing text `str` and icon `bool` or `str` for an image link.
+            view `discord.ui.View, optional`: A reference to a `discord.ui.View` instance.
+            ephemeral `bool, optional`: Whether the message should be ephemeral (for interactions).
+            dropdown_options `list[discord.SelectOption], optional`: A list of `discord.SelectOption` items for a dropdown menu.
+            dropdown_callback `Callable, optional`: An asynchronous function to handle dropdown selections.
+
+        Returns:
+            `discord.Embed`: The embed that was created and sent, if needed elsewhere.
         """
         # Fetch the icon details
         self.icon_file, self.icon_url = getIcon()
@@ -84,7 +107,7 @@ class BaseClass(commands.Cog):
         embed = discord.Embed(
             title=title,
             description=description,
-            colour=colour or discord.Colour.random(),
+            colour=colour ,
         )
         embed.set_author(name=self.botname, icon_url=self.icon_url)
         if len(thumbnail) != 0:
@@ -119,14 +142,17 @@ class BaseClass(commands.Cog):
                     
         # Send the embed
         await send(embed=embed, view=view, file=self.icon_file if self.icon_file else None)
-
+        #return the embed object if needed elsewhere
+        return embed
 
     @classmethod
-    async def setup(cls, bot, cog_class):
+    async def setup(cls, bot: commands.Bot, cog_class: type):
         """
         Class method to simplify the cog setup process.
-        :param bot: The bot instance
-        :param cog_class: The cog class to instantiate and add to the bot
+        ---
+        Attributes:
+            bot `commands.Bot`: The bot instance.
+            cog_class `type`: The cog class to instantiate and add to the bot.
         """
         print("Setting up", bot, cog_class)
         await bot.add_cog(cog_class(bot))

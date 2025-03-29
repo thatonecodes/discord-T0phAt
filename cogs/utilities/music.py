@@ -7,9 +7,6 @@ from discord.ext import commands
 class MusicPlayer(BaseClass):
     def __init__(self, bot) -> None:
         super().__init__(bot)
-        if not discord.opus.is_loaded():
-            opus_path = "./.venv/lib/python3.11/site-packages/discord/bin/libopus-0.x86.dll"
-            discord.opus.load_opus(opus_path)
 
     @commands.command(help="Connect to vc you are in.")
     async def connect(self, ctx):
@@ -87,7 +84,7 @@ class MusicPlayer(BaseClass):
                 description=f"Playing: {title}"
             )
         except Exception as e:
-            print(traceback.print_exc())
+            traceback.print_exc()
             print(e)
             await self.send_embed(
                 ctx,
