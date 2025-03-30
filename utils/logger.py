@@ -2,6 +2,8 @@ import logging
 from utils import create_debug_file
 import os
 
+verbose = False
+
 class CustomLoggingHandler(logging.Handler):
     """
     A custom logging handler that processes log records.
@@ -25,7 +27,10 @@ class CustomLoggingHandler(logging.Handler):
         if logging.getLevelName(record.levelno) in ["DEBUG", "INFO"]:
             created_file = create_debug_file()
             with open(created_file, "a", encoding="UTF-8") as file:
-                file.write(log_entry + "\n")
+                write_string = log_entry + "\n"
+                file.write(write_string)
+                if verbose:
+                    print(write_string)
 
 def set_log_level(logger: logging.Logger, level: str):
     """

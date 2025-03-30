@@ -6,7 +6,7 @@ import events
 import os
 import asyncio
 import traceback
-from utils import get_logger
+from utils import get_logger, ParserWrapper, verbose
 
 
 load_dotenv()
@@ -18,6 +18,9 @@ intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='$', intents=intents, help_command=None)
 
 #load logging
+parser = ParserWrapper()
+args = parser.parse_args()
+# TODO - do the parsing for verbose flag
 logger = get_logger()
 
 @bot.event                
