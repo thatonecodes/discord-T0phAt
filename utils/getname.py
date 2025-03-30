@@ -5,6 +5,6 @@ name = os.getenv("BOTNAME")
 
 def getName() -> str:
     if not name:
-        return ""
+        return "DefaultName"
     return name
 

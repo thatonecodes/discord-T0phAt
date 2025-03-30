@@ -1,7 +1,9 @@
-from utils import BaseClass, getenv
+from typing import Dict, List
+from utils import BaseClass
 from discord.ext import commands
 import discord
 import requests
+import asyncio
 import aiohttp
 import os
 import random
@@ -24,9 +26,8 @@ class Crawler(BaseClass):
                     soup = BeautifulSoup(html, "html.parser")
                     pretty_html = soup.prettify()
 
-                    with tempfile.NamedTemporaryFile(delete=False, mode="w", suffix=".html") as temp_file:
-                        temp_file.write(pretty_html)
-                        temp_file_path = temp_file.name
+                    # Offload file writing to a separate thread - no blocking threads
+                    temp_file_path = await asyncio.to_thread(self.write_temp_file, pretty_html)
 
                     await ctx.send(file=discord.File(temp_file_path, filename="response.html"))
 
@@ -49,12 +50,18 @@ class Crawler(BaseClass):
             if temp_file_path:
                 try:
                     os.remove(temp_file_path)
-                except Exception:
+                except FileNotFoundError:
                     pass
+
+    def write_temp_file(self, pretty_html: str) -> str:
+        """Write the HTML content to a temporary file and return its path."""
+        with tempfile.NamedTemporaryFile(delete=False, mode="w", suffix=".html") as temp_file:
+            temp_file.write(pretty_html)
+            return temp_file.name
 
     async def maketopggrequest(self, ctx, url, params, send_embed=True):
         headers = {
-            "Authorization": str(getenv("TOPGGAPIKEY"))
+            "Authorization": str(os.getenv("TOPGGAPIKEY"))
         }
 
         response = requests.get(url, params=params, headers=headers)
@@ -62,7 +69,7 @@ class Crawler(BaseClass):
         if response.status_code == 200:
             data = response.json()  # Parse the JSON response
 
-            fields = []
+            fields: List[Dict] = []
 
             for bot in data["results"]:
                 description = f"""Bot ID: {bot['id']}
@@ -75,7 +82,7 @@ class Crawler(BaseClass):
                 await self.send_embed(
                     ctx,
                     title=f"Get bot(s) - Limit {params['limit']}",
-                    description=None,
+                    description="",
                     fields=fields
                 )
             return fields
@@ -132,14 +139,12 @@ class Crawler(BaseClass):
             "fields": "id,username,shortdesc,invite,website",  # Fields to return in the response
         }
         url = f"https://top.gg/api/bots/{botId}"
-        fields = self.maketopggrequest(ctx, url, params, send_embed=False)
-
-
+        fields = await self.maketopggrequest(ctx, url, params, send_embed=False)
 
         await self.send_embed(
             ctx, 
             title=f"Info for {user.name} from top.gg",
-            description=None,
+            description="",
             fields=fields
         )
 

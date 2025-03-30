@@ -1,6 +1,6 @@
-from .getfile import getFile
+from .getfile import getFile, create_debug_file
 from .geticon import getIcon
 from .getname import getName
-from .getenv import getenv
 from .getversion import getVersion
 from .base import BaseClass
+from .logger import get_logger

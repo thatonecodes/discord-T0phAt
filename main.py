@@ -6,6 +6,7 @@ import events
 import os
 import asyncio
 import traceback
+from utils import get_logger
 
 
 load_dotenv()
@@ -16,6 +17,8 @@ defaultguildID = os.getenv("DEFAULTGUILDID")
 intents = discord.Intents.all()
 bot = commands.Bot(command_prefix='$', intents=intents, help_command=None)
 
+#load logging
+logger = get_logger()
 
 @bot.event                
 async def loader():
@@ -31,14 +34,14 @@ async def loader():
                     cog_path = f"cogs.{rel_dir.replace('/', '.')}.{cog_name}"
                 try:
                     await bot.load_extension(cog_path)
-                    print(f"Loaded cog: {cog_path}")
+                    logger.debug(f"Loaded cog: {cog_path}")
                 except ExtensionAlreadyLoaded:
                     pass
                 except NoEntryPointError:
                     pass #passing due to base class function should be loading entry point
                 except Exception as e:
-                    print("ERROR")
-                    traceback.print_exc()
+                    logger.fatal("There was an error that occurred during loading: ", e,
+                                 "\nHere is the traceback:\n", traceback.print_exc())
 
 
 @bot.event
@@ -51,6 +54,7 @@ async def on_command_error(*args, **kwargs):
 
 token = str(os.getenv("BOTTOKEN"))
 if not token:
+    logger.fatal("[ERR] - NO BOT TOKEN!")
     raise Exception("No bot token was found! Did you create an .env file with BOTTOKEN var?")
 
 async def main():

@@ -1,4 +1,4 @@
-from utils import BaseClass 
+from utils import BaseClass, logger 
 import discord
 import yt_dlp
 import traceback
@@ -7,6 +7,7 @@ from discord.ext import commands
 class MusicPlayer(BaseClass):
     def __init__(self, bot) -> None:
         super().__init__(bot)
+        self.logger = logger.get_logger()
 
     @commands.command(help="Connect to vc you are in.")
     async def connect(self, ctx):
@@ -27,7 +28,7 @@ class MusicPlayer(BaseClass):
                     colour=discord.Colour.red(),
                 )
         except Exception as e:
-            print(e)
+            self.logger.error(e)
 
     @commands.command(help="Tells what the bot should play. takes as URL. - use `$play URL`")
     async def play(self, ctx, url: str):
@@ -84,8 +85,7 @@ class MusicPlayer(BaseClass):
                 description=f"Playing: {title}"
             )
         except Exception as e:
-            traceback.print_exc()
-            print(e)
+            self.logger.error("[ERR] AUDIO ISSUE: %s", e, traceback.print_exc())
             await self.send_embed(
                 ctx,
                 title="Error Playing Audio!",

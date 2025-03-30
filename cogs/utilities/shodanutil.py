@@ -2,7 +2,8 @@ import discord
 from discord.ext import commands
 from shodan import Shodan
 import shodan
-from utils import BaseClass, getenv
+from utils import BaseClass
+import os
 import re
 
 class ShodanAPICommands(BaseClass):
@@ -31,7 +32,7 @@ class ShodanAPICommands(BaseClass):
         return bool(ipv4_pattern.match(ip))
 
     def initalize_shodan(self):
-        api_key = getenv("SHODAN_API_KEY")
+        api_key = os.getenv("SHODAN_API_KEY", "")
         return Shodan(api_key)
 
     @commands.command(help="Searches IPv4 using Shodan API and gets info. Usage: $searchip (ip)")

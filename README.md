@@ -22,6 +22,7 @@ BOTTOKEN="{BOTIDTOKEN}"
 VERSION="v1.0.0"
 TOPGGAPIKEY="{API_KEY_HERE}"
 SHODAN_API_KEY="{API_KEY_HERE}"
+LOGGING_LEVEL="DEBUG"
 ```
 See the `.env.example` file for the template.
 

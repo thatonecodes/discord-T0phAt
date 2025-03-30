@@ -1,13 +1,10 @@
 import discord
-import logging, traceback
 from discord.ext import commands
 from discord.file import File
-from utils import getIcon, getName
-# from pathlib import Path
-
-# env_path = Path(__file__).resolve().parent.parent / ".env"
+from utils import getIcon, getName, get_logger
 
 botname: str = getName()
+logger = get_logger()
 
 async def generic_error(ctx: commands.Context, icon_file: File | None, icon_url: str, error):
     errorembed = discord.Embed(
@@ -22,14 +19,13 @@ async def generic_error(ctx: commands.Context, icon_file: File | None, icon_url:
     if icon_file:
         await ctx.send(embed=errorembed, file=icon_file)
     else:
-        logging.warn("[WARN] There was an issue with the icon file, using NO icon file.")
+        logger.warn("[WARN] There was an issue with the icon file, using NO icon file.")
         await ctx.send(embed=errorembed)
 
 
 def print_err(error):
-    logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.ERROR)
-    logging.error("[ERR] An error occurred during the execution of the script! Running traceback...")
-    traceback.print_exception(type(error), error, error.__traceback__)
+    logger.error("[ERR] An error occurred during the execution of the script! Running traceback...")
+    logger.error("An exception occurred: %s", error, exc_info=True)
 
 async def on_command_error(ctx, error):
     icon_file, icon_url = getIcon()
@@ -68,8 +64,7 @@ async def on_command_error(ctx, error):
         await ctx.send(embed=notfound, file=icon_file)
     elif isinstance(error, commands.CommandInvokeError): 
         if isinstance(error.original, discord.errors.HTTPException):
-            logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.WARN)
-            logging.warn("[WARN] Error processing http request, return code 400(Bad Request), are you using an invalid url?")
+            logger.warn("[WARN] Error processing http request, return code 400(Bad Request), are you using an invalid url?")
             await generic_error(ctx, icon_file, icon_url, error)
             
     elif isinstance(error, commands.BadArgument): 
@@ -86,5 +81,3 @@ async def on_command_error(ctx, error):
     else:
         await generic_error(ctx, icon_file, icon_url, error)
         print_err(error)
-
-

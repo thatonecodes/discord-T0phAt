@@ -138,7 +138,9 @@ class BaseClass(commands.Cog):
                     else:
                         await ctx.followup.send(embed=embed, file=file, view=view, ephemeral=ephemeral)
             except Exception as e:
-                print("ERR", e)
+                pass
+                # logger = get_logger()
+                # logger.error("[ERR] While sending:", e)
                     
         # Send the embed
         await send(embed=embed, view=view, file=self.icon_file if self.icon_file else None)
@@ -154,5 +156,6 @@ class BaseClass(commands.Cog):
             bot `commands.Bot`: The bot instance.
             cog_class `type`: The cog class to instantiate and add to the bot.
         """
-        print("Setting up", bot, cog_class)
+        # logger.debug("Setting up", bot, cog_class)
+
         await bot.add_cog(cog_class(bot))
