@@ -1,8 +1,9 @@
 import logging
-from utils import create_debug_file
-import os
-
-verbose = False
+from pathlib import Path
+from collections import deque
+from utils import create_debug_file, remove_debug_file
+from .argparser import ParserWrapper
+import os, threading
 
 class CustomLoggingHandler(logging.Handler):
     """
@@ -13,23 +14,34 @@ class CustomLoggingHandler(logging.Handler):
     """
 
     def __init__(self, level=logging.NOTSET):
+        self.verbose = False
+        self.buffer = deque()
         super().__init__(level)  # Initialize the parent logging.Handler class
+
+    def set_verbose(self, flag: bool):
+        """
+        Simple function to set the verbose flag in the class.
+        ---
+        Attributes:
+            flag `bool`: boolean value of the verbosity of the logger
+        """
+        self.verbose = flag
 
     def emit(self, record: logging.LogRecord):
         """
         Process the log record and send it to the desired output.
         ---
         Attributes:
-            record `logging.LogRecord`: A LogRecord instance containing the log event.
+            record logging.LogRecord: A LogRecord instance containing the log event.
         """
         log_entry = self.format(record)
 
         if logging.getLevelName(record.levelno) in ["DEBUG", "INFO"]:
             created_file = create_debug_file()
             with open(created_file, "a", encoding="UTF-8") as file:
-                write_string = log_entry + "\n"
-                file.write(write_string)
-                if verbose:
+                write_string = log_entry 
+                file.write(write_string + "\n")
+                if self.verbose:
                     print(write_string)
 
 def set_log_level(logger: logging.Logger, level: str):
@@ -51,6 +63,7 @@ class LoggerSingleton:
     Singleton class to initalize and get logger.
     """
     _logger = None
+    _custom_handler = None
 
     @staticmethod
     def init_logger(level: str):
@@ -68,16 +81,43 @@ class LoggerSingleton:
             LoggerSingleton._logger = logging.getLogger("custom_logger")
             set_log_level(LoggerSingleton._logger, level)
 
-            custom_handler = CustomLoggingHandler()
+            LoggerSingleton._custom_handler = CustomLoggingHandler()
             formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-            custom_handler.setFormatter(formatter)
+            LoggerSingleton._custom_handler.setFormatter(formatter)
 
-            LoggerSingleton._logger.addHandler(custom_handler)
+            LoggerSingleton._logger.addHandler(LoggerSingleton._custom_handler)
 
         return LoggerSingleton._logger
+
+    @staticmethod
+    def set_verbose(flag: bool):
+        """
+        Toggle verbose mode dynamically.
+        ---
+        Attributes:
+            flag `bool`: flag of verbosity, true or false
+        """
+        if LoggerSingleton._custom_handler:
+            LoggerSingleton._custom_handler.set_verbose(flag)
 
 def get_logger() -> logging.Logger:
     """
     Utility function to easily get logger. It returns the Singleton Class logger.
     """
-    return LoggerSingleton.init_logger(os.getenv("LOGGING_LEVEL", "INFO")) #info is the default level
+    parser = ParserWrapper()
+    args = parser.parse_args()
+
+    if args.verbose:
+        LoggerSingleton.set_verbose(args.verbose)
+
+    if args.clear:
+        def clear_logs():
+            try:
+                remove_debug_file()
+            except FileNotFoundError:
+                pass
+
+        # Start file removal in a separate thread (non-blocking)
+        threading.Thread(target=clear_logs, daemon=True).start()
+
+    return LoggerSingleton.init_logger(os.getenv("LOGGING_LEVEL", "INFO"))

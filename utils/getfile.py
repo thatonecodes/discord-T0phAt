@@ -50,3 +50,25 @@ def create_debug_file(path: Path = Path.cwd(), filename: str = "debug.log"):
             file.write(f"{log_file} successfully created at: {current_time}\n")
 
     return log_file
+
+def remove_debug_file(path: Path = Path.cwd(), filename: str = "debug.log"):
+    """
+    Removes a debug log file at the specified path.
+    ---
+    Attributes: 
+        path `Path`: The path specified using pathlib, defaults to `Path.cwd()`
+        filename `str`: The filename you would like to call the debug file, default is "debug.log"
+
+    Raises:
+        `FileNotFoundError`: If the file to delete was not found
+    """
+
+    target_path = path if path else Path.cwd()
+    target_path = Path(target_path)
+
+    log_file = target_path / filename
+
+    if log_file.exists():
+        log_file.unlink()  # Deletes the file
+    else:
+        raise FileNotFoundError(f"File not found: {log_file}")
