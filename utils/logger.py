@@ -1,5 +1,4 @@
 import logging
-from pathlib import Path
 from collections import deque
 from utils import create_debug_file, remove_debug_file
 from .argparser import ParserWrapper
@@ -53,10 +52,19 @@ def set_log_level(logger: logging.Logger, level: str):
         level `str`: the logger level (case insensitive)
     """
     level = level.lower()
-    if level in ["debug", "warn"]:
+    if level == "debug":
         logger.setLevel(logging.DEBUG)
     elif level == "info":
         logger.setLevel(logging.INFO)
+    elif level in ["warn", "warning"]:
+        logger.setLevel(logging.WARNING)
+    elif level == "error":
+        logger.setLevel(logging.ERROR)
+    elif level == "critical":
+        logger.setLevel(logging.CRITICAL)
+    else:
+        # Default to DEBUG if unknown level
+        logger.setLevel(logging.DEBUG)
 
 class LoggerSingleton:
     """
@@ -120,4 +128,4 @@ def get_logger() -> logging.Logger:
         # Start file removal in a separate thread (non-blocking)
         threading.Thread(target=clear_logs, daemon=True).start()
 
-    return LoggerSingleton.init_logger(os.getenv("LOGGING_LEVEL", "INFO"))
+    return LoggerSingleton.init_logger(os.getenv("LOGGING_LEVEL", "DEBUG"))
